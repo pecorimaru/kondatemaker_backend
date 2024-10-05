@@ -1,9 +1,13 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from dotenv import load_dotenv
+import os
+
 from src.db.base import Base
 
-database_file = r"../kondate.db"
+load_dotenv()
+database_file = os.getenv("DATABASE_FILE")
 # database_file = r"E:\Documents\SE\local\sqlite\db\kondate.db"
 
 engine = create_engine("sqlite:///" + database_file, echo=True)

@@ -5,6 +5,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from dotenv import load_dotenv
 import os
 
 from src.db.session import SessionLocal
@@ -16,10 +17,12 @@ from src.api.inputingred import router as inputingred_router
 
 app = FastAPI()
 
+load_dotenv()
+client_url = os.getenv("CLIENT_URL")
 # CORSを設定して、Reactからのリクエストを許可する
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # ReactのサーバーURL
+    allow_origins=[client_url],  # ReactのサーバーURL
     # allow_origins=["https://kondatemaker.mydns.jp"],  # ReactのサーバーURL
     
     allow_credentials=True,
@@ -41,6 +44,7 @@ app.include_router(home_router, prefix="/api/home")   # ホーム画面
 app.include_router(buylist_router, prefix="/api/buyList")   # 買い物リスト画面
 app.include_router(inputingred_router, prefix="/api/inputIngred")   # 買い物リスト画面
 
+# テストコメント
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

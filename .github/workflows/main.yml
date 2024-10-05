@@ -34,6 +34,10 @@ jobs:
       #   run: npm run build  # プロジェクトのビルドコマンド
 
       - name: Deploy to Server
+        env:
+          CLIENT_URL: https://kondatemaker.mydns.jp  # セキュリティに関係ない環境変数
+          DATABASE_FILE: ../kondate.db
+
         run: |
           # ここにデプロイのコマンドを追加
           ssh pecorimaru@kondatemaker.mydns.jp "cd /develop/kondatemaker/backend/ && git pull origin main"
