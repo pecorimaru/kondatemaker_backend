@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+
+Scripts/
+
+# キャッシュ
+.pytest_cache/
+.mypy_cache/
+
+# OSファイル
+.DS_Store
+Thumbs.db
+
+# ログファイル
+*.log
