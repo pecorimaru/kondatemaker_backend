@@ -3,8 +3,8 @@ from sqlalchemy.orm import sessionmaker
 
 from src.db.base import Base
 
-# database_file = r"../kondate.db"
-database_file = r"E:\Documents\SE\local\sqlite\db\kondate.db"
+database_file = r"../kondate.db"
+# database_file = r"E:\Documents\SE\local\sqlite\db\kondate.db"
 
 engine = create_engine("sqlite:///" + database_file, echo=True)
 

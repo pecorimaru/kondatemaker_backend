@@ -5,6 +5,7 @@ __pycache__/
 
 
 Scripts/
+venv/
 
 # キャッシュ
 .pytest_cache/
