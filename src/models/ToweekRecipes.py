@@ -3,9 +3,13 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
 
+from typing import TYPE_CHECKING
+
 from src.db.base import Base
-# from models.models import User
-# from models.models import Recipe
+
+if TYPE_CHECKING:
+    from src.models.models import User
+    from src.models.models import Recipe
 
 class ToweekRecipes(Base):
     __tablename__ = 'w_toweek_recipes'
@@ -16,5 +20,5 @@ class ToweekRecipes(Base):
     recipe_id = Column(Integer, ForeignKey('t_recipe.recipe_id'), nullable=True)
     crt_dt = Column(String, nullable=True)
 
-    rel_m_user: Mapped[User] = relationship("User", back_populates="rel_w_toweek_recipes") # type: ignore
-    rel_t_recipe: Mapped[Recipe] = relationship("Recipe", back_populates="rel_w_toweek_recipes") # type: ignore
+    rel_m_user: Mapped[User] = relationship("User", back_populates="rel_w_toweek_recipes")
+    rel_t_recipe: Mapped[Recipe] = relationship("Recipe", back_populates="rel_w_toweek_recipes")

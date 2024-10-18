@@ -3,10 +3,14 @@ from sqlalchemy import Column, Integer, String, REAL, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
 
-from src.db.base import Base
-# from models.models import User
-# from models.models import Ingred
+from typing import TYPE_CHECKING
 
+from src.db.base import Base
+# from src.models.models import User
+# # from models.models import Ingred
+
+if TYPE_CHECKING:
+    from src.models.models import User
 
 class BuyIngreds(Base):
     __tablename__ = 'w_buy_ingreds'

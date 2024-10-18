@@ -7,6 +7,7 @@ from datetime import datetime
 
 from src.models.models import Ingred
 
+from src.models.models import RecipeIngred
 from src.models.BuyIngreds import BuyIngreds
 from src.crud import common as common_crud
 
@@ -23,7 +24,7 @@ def get_standard_unit_nm(ingred_nm: str, user_id, db: Session):
         if not ingred:
             return None
 
-        app_consts = common_crud.get_app_const("C0002", db)
+        app_consts = common_crud.get_app_consts("C0002", db)
 
         for app_const in app_consts:
             if ingred.standard_unit_cd == app_const.val:
@@ -46,7 +47,7 @@ def get_sales_area_nm(ingred_nm: str, user_id, db: Session):
         if not ingred:
             return None
 
-        app_consts = common_crud.get_app_const("C0004", db)
+        app_consts = common_crud.get_app_consts("C0004", db)
 
         for app_const in app_consts:
             if ingred.sales_area_type == app_const.val:
@@ -62,15 +63,13 @@ def get_sales_area_nm(ingred_nm: str, user_id, db: Session):
 
 
 
-
-
 def create_buy_ingreds(ingred_nm: str, qty: float, unit_nm: str, sales_area_nm: str, user_id: str, db: Session):
 
     try:
 
         ingred = db.query(Ingred).filter(Ingred.ingred_nm == ingred_nm, Ingred.owner_user_id == user_id).one_or_none()
 
-        sales_area = common_crud.get_app_const_val("C0004", ingred.sales_area_type, db) if ingred else None
+        sales_area = common_crud.get_app_const_from_val("C0004", ingred.sales_area_type, db) if ingred else None
 
         new_buy_ingreds = BuyIngreds(
             user_id = user_id,
@@ -94,3 +93,4 @@ def create_buy_ingreds(ingred_nm: str, qty: float, unit_nm: str, sales_area_nm: 
 
     finally:
         pass
+

@@ -24,7 +24,7 @@ def get_app_const_all(db: Session) -> list[AppConst]:
         pass
 
 
-def get_app_const(type_cd: str, db: Session) -> list[AppConst]:
+def get_app_consts(type_cd: str, db: Session) -> list[AppConst]:
 
     try:
 
@@ -41,11 +41,11 @@ def get_app_const(type_cd: str, db: Session) -> list[AppConst]:
         pass
 
 
-def get_app_const_val(type_cd: str, val: str, db: Session) -> AppConst:
+def get_app_const_from_val(type_cd: str, val: str, db: Session) -> AppConst:
 
     try:
 
-        const_list = get_app_const(type_cd, db)
+        const_list = get_app_consts(type_cd, db)
 
         for const in const_list:
             if const.val == val:
@@ -55,3 +55,31 @@ def get_app_const_val(type_cd: str, val: str, db: Session) -> AppConst:
 
     finally:
         pass
+
+
+def get_app_const_from_content(type_cd: str, val_content: str, db: Session) -> AppConst:
+
+    try:
+
+        const_list = get_app_consts(type_cd, db)
+
+        for const in const_list:
+            if const.val_content == val_content:
+                return const
+
+        return None
+
+    finally:
+        pass
+
+
+def get_val(type_cd: str, val_content: str, db: Session):
+
+    app_const = get_app_const_from_content(type_cd, val_content, db)
+    return app_const.val if app_const else None
+
+
+def get_val_content(type_cd: str, val: str, db: Session):
+
+    app_const = get_app_const_from_val(type_cd, val, db)
+    return app_const.val_content if app_const else None

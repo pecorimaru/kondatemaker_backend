@@ -1,15 +1,19 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from src.utils.apiutils import CamelModel
 from src.crud import home as home_crud
 from src.db.session import get_db
 
 router = APIRouter()
 
-class PutResponse(BaseModel):
-    statusCode: int
+class RefreshToweekPlanResponse(CamelModel):
+    status_code: int
     message: str
 
+class RefreshToweekPlanRequest(CamelModel):
+    selected_plan: str
+    user_id: int
 
 @router.get("/menuPlanNm/{query_params}")
 def fetch_menu_plan_nm(user_id: int, db: Session = Depends(get_db)):
@@ -40,11 +44,9 @@ def fetch_toweek_recipes(selected_plan: str, user_id: int, db: Session = Depends
     return toweek_recipes
 
 
-class RefreshToweekPlanRequest(BaseModel):
-    selected_plan: str
-    user_id: int
 
-@router.put("/refreshToweekPlan", response_model=PutResponse)
+
+@router.put("/refreshToweekPlan", response_model=RefreshToweekPlanResponse)
 async def refresh_toweek_plan(request: RefreshToweekPlanRequest, db: Session = Depends(get_db)):
 
     home_crud.delete_toweek_recipes(request.user_id, db)
@@ -54,8 +56,8 @@ async def refresh_toweek_plan(request: RefreshToweekPlanRequest, db: Session = D
     home_crud.create_toweek_recipes(request.selected_plan, request.user_id, db)
     home_crud.create_buy_ingreds(request.user_id, db)
 
-    return PutResponse(
-        statusCode=200,
+    return RefreshToweekPlanResponse(
+        status_code = 200,
         message = "Refresh Successful"
     )
 

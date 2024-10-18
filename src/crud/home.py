@@ -2,15 +2,16 @@ from sqlalchemy import text
 from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
 
-from pydantic import BaseModel
 from datetime import datetime
 
+from src.utils.apiutils import CamelModel
 from src.models.models import UserConfig
 from src.models.models import MenuPlan
 from src.models.ToweekRecipes import ToweekRecipes
 from src.models.BuyIngreds import BuyIngreds
 
-class ToweekRecipe(BaseModel):
+
+class ToweekRecipe(CamelModel):
     id: int
     name: str
 

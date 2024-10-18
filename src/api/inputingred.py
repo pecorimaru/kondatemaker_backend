@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import Optional
-from pydantic import BaseModel
+from src.utils.apiutils import CamelModel
 from src.crud import common as common_crud
 from src.crud import inputingred as inputingred_crud
 from src.db.session import get_db
@@ -10,64 +10,65 @@ import src.utils.dbutils as dbutils
 
 router = APIRouter()
 
-class SubmitRequest(BaseModel):
-    ingredNm: str
+class SubmitAddBuyIngredRequest(CamelModel):
+    ingred_nm: str
     qty: float
-    unitNm: str
-    salesAreaNm: str
-    userId: int
+    unit_nm: str
+    sales_area_nm: str
+    user_id: int
 
-class SubmitResponse(BaseModel):
-    statusCode: int
-    detail: dict
+class SubmitAddBuyIngredResponse(CamelModel):
+    status_code: int
+    message: str
+    dict_buy_ingreds: dict
 
 
-class UnitList(BaseModel):
-    unitCd: str
-    unitNm: str
+class UnitList(CamelModel):
+    unit_cd: str
+    unit_nm: str
 
-class SalesArea(BaseModel):
+class SalesArea(CamelModel):
     cd: str
     nm: str
 
-class InitItems(BaseModel):
-    unitNm: Optional[str] = None
-    salesAreaNm: Optional[str] = None
+class InitItems(CamelModel):
+    unit_nm: Optional[str] = None
+    sales_area_nm: Optional[str] = None
 
 @router.get("/unitList")
 def fetch_unit_list(db: Session = Depends(get_db)):
     
-    app_consts = common_crud.get_app_const("C0002", db)
+    app_consts = common_crud.get_app_consts("C0002", db)
 
     unit_list = []
     for app_const in app_consts:
         unit_list.append(UnitList(
-            unitCd=app_const.val,
-            unitNm=app_const.val_content
+            unit_cd=app_const.val,
+            unit_nm=app_const.val_content
         ))
 
     print(unit_list)
     return unit_list
 
 @router.get("/initItemsForIngred/{query_params}")
-def fetch_init_unit_nm(ingredNm:str, userId: int, db: Session = Depends(get_db)):
+def fetch_init_items(ingred_nm:str, user_id: int, db: Session = Depends(get_db)):
     
-    unit_nm = inputingred_crud.get_standard_unit_nm(ingredNm, userId, db)
+    unit_nm = inputingred_crud.get_standard_unit_nm(ingred_nm, user_id, db)
 
-    sales_area_nm = inputingred_crud.get_sales_area_nm(ingredNm, userId, db)
+    sales_area_nm = inputingred_crud.get_sales_area_nm(ingred_nm, user_id, db)
 
     init_items = InitItems(
-        unitNm = unit_nm,
-        salesAreaNm = sales_area_nm
+        unit_nm = unit_nm,
+        sales_area_nm = sales_area_nm
     )
 
     print(init_items)
     return init_items
 
 @router.get("/salesAreaList")
-def fetch_unit_list(db: Session = Depends(get_db)):
+def fetch_sales_area_list(db: Session = Depends(get_db)):
     
-    app_consts = common_crud.get_app_const("C0004", db)
+    app_consts = common_crud.get_app_consts("C0004", db)
 
     sales_area_list = []
     for app_const in app_consts:
@@ -80,15 +81,18 @@ def fetch_unit_list(db: Session = Depends(get_db)):
     return sales_area_list
 
 
-@router.post("/submit", response_model=SubmitResponse)
-async def submit(request: SubmitRequest, db: Session = Depends(get_db)):
+@router.post("/submitAddBuyIngred", response_model=SubmitAddBuyIngredResponse)
+async def submit_add_buy_ingred(request: SubmitAddBuyIngredRequest, db: Session = Depends(get_db)):
 
 
-    new_buy_ingreds = inputingred_crud.create_buy_ingreds(request.ingredNm, request.qty, request.unitNm, request.salesAreaNm, request.userId, db)
+    new_buy_ingreds = inputingred_crud.create_buy_ingreds(request.ingred_nm, request.qty, request.unit_nm, request.sales_area_nm, request.user_id, db)
     
     dict_buy_ingreds = dbutils.to_dict(new_buy_ingreds) 
 
-    return SubmitResponse(
-        statusCode = 200,
-        detail = dict_buy_ingreds
+    return SubmitAddBuyIngredResponse(
+        status_code = 200,
+        message = "Success",
+        dict_buy_ingreds = dict_buy_ingreds
     )
+
+

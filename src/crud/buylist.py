@@ -2,8 +2,6 @@ from sqlalchemy import text
 from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
 
-from pydantic import BaseModel
-from datetime import datetime
 
 from src.models.models import User
 from src.models.models import UserConfig
@@ -15,12 +13,12 @@ from src.models.ToweekRecipes import ToweekRecipes
 from src.models.BuyIngreds import BuyIngreds
 
 
-def get_buy_ingreds(user_id: int, db: Session):
+def get_buy_ingreds_list(user_id: int, db: Session) -> list[BuyIngreds]:
 
     try:
 
-        buy_ingreds = db.query(BuyIngreds).filter(BuyIngreds.user_id == user_id).all()
-        return buy_ingreds           
+        buy_ingreds_list = db.query(BuyIngreds).filter(BuyIngreds.user_id == user_id).all()
+        return buy_ingreds_list           
 
     finally:
         pass

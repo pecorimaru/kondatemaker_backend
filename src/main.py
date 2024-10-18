@@ -13,7 +13,9 @@ from src.api.login import router as login_router
 from src.api.home import router as home_router
 from src.api.buylist import router as buylist_router
 from src.api.inputingred import router as inputingred_router
-
+from src.api.recipelist import router as recipelist_router
+from src.api.inputrecipe import router as inputrecipe_router
+from src.api.common import register_exception_handlers
 
 app = FastAPI()
 
@@ -30,6 +32,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+
 @app.get("/favicon.ico")
 async def favicon():
     file_path = os.path.join(r"backend\static", "favicon.ico")
@@ -39,10 +43,13 @@ async def favicon():
     return FileResponse(os.path.join("static", "default_favicon.ico"))
 
 
-app.include_router(login_router, prefix="/api")  # ログイン画面
-app.include_router(home_router, prefix="/api/home")   # ホーム画面
-app.include_router(buylist_router, prefix="/api/buyList")   # 買い物リスト画面
-app.include_router(inputingred_router, prefix="/api/inputIngred")   # 買い物リスト画面
+register_exception_handlers(app)
+app.include_router(login_router, prefix="/api")
+app.include_router(home_router, prefix="/api/home")
+app.include_router(buylist_router, prefix="/api/buyList")
+app.include_router(inputingred_router, prefix="/api/inputIngred")
+app.include_router(recipelist_router, prefix="/api/recipeList")
+app.include_router(inputrecipe_router, prefix="/api/inputRecipe")
 
 # テストコメント
 
