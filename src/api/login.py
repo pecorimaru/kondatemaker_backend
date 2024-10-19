@@ -6,6 +6,7 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
 
+from src.utils.apiutils import CamelModel
 from src.crud import login as login_crud
 from src.db.session import get_db
 from src.utils.apiutils import convert_dict_to_camel_case
@@ -14,23 +15,19 @@ router = APIRouter()
 
 GOOGLE_CLIENT_ID = "160003454125-03dkjca5khvs730fqfkmiguatdm8it58.apps.googleusercontent.com"
 
-class LoginRequest(BaseModel):
+class LoginRequest(CamelModel):
     email: str
     password: Optional[str]=None
 
-class GoogleLoginRequest(BaseModel):
+class GoogleLoginRequest(CamelModel):
     token: str
 
-class LoginResponse(BaseModel):
+class LoginResponse(CamelModel):
     status_code: int
     message: str
     id: Optional[int]=None
     name: Optional[str]=None
 
-    model_config = ConfigDict(
-        populate_by_name=True,
-        alias_generator=to_camel
-    )
 
 @router.post("/login", response_model=LoginResponse)
 async def login(request: LoginRequest, db: Session = Depends(get_db)):
@@ -38,6 +35,8 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     try:
 
         user = login_crud.get_user(request.email, db)
+        print(user.user_id)
+        print(user.user_nm)
         if user:
             if user.password == request.password:
                 return LoginResponse(
