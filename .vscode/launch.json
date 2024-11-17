@@ -10,8 +10,9 @@
             "request": "launch",
             "module": "uvicorn",
             "args": [
-                "src.main:app",
-                "--reload"
+                "app.main:app",
+                "--reload",
+                "--no-access-log"
             ],
             "jinja": true,
             "justMyCode": false
