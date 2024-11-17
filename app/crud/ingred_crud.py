@@ -27,7 +27,7 @@ class IngredCrud(BaseService):
     def get_ingred_list(self):
 
         try:
-            ingred_list = self.db.query(Ingred).filter(Ingred.owner_user_id == self.user_id).all()
+            ingred_list = self.db.query(Ingred).filter(Ingred.owner_user_id == self.user_id).order_by(Ingred.ingred_nm_k).all()
             return ingred_list
 
         except SQLAlchemyError as e:
