@@ -7,3 +7,4 @@ from app.services.recipe_service import RecipeService
 from app.services.recipe_form_service import RecipeFormService
 from app.services.menu_plan_service import MenuPlanService
 from app.services.app_const_service import AppConstService
+from app.services.setting_service import SettingService

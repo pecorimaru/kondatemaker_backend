@@ -5,7 +5,7 @@ from app.models import MenuPlan
 
 
 class MenuPlanDisp(CamelModel):
-    menu_plan_id: int
+    menu_plan_id: Optional[int]
     menu_plan_nm: str
     menu_plan_nm_k: Optional[str]
 

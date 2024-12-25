@@ -14,7 +14,7 @@ class MenuPlanDetDisp(CamelModel):
         return cls(
             menu_plan_det_id = menu_plan_det.menu_plan_det_id,
             menu_plan_id = menu_plan_det.menu_plan_id,
-            weekday_cd = menu_plan_det.week_day_cd,
+            weekday_cd = menu_plan_det.weekday_cd,
             recipe_id = menu_plan_det.recipe_id,
             recipe_nm = menu_plan_det.rel_t_recipe.recipe_nm,
         )

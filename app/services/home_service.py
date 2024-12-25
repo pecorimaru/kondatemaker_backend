@@ -1,30 +1,33 @@
 from sqlalchemy.orm import Session
 
 from app.core.base_service import BaseService
-from app.crud import UserCrud, IngredCrud, RecipeCrud, MenuPlanCrud, WorkCrud, AppConstCrud
-from app.models import Recipe, BuyIngred
+from app.crud import UserCrud, RecipeCrud, MenuPlanCrud, WorkCrud, AppConstCrud
 from app.models.display import MenuPlanDisp, ToweekMenuPlanDetDisp
 
 from app.utils import constants as const
 
 
 class HomeService(BaseService):
-    def __init__(self, user_id: int, db: Session):
-        super().__init__(user_id, db)
+    def __init__(self, user_id: int, group_id: int, owner_user_id: int, db: Session):
+        super().__init__(user_id, group_id, owner_user_id, db)
 
 
     def fetch_selected_plan(self) -> MenuPlanDisp:
 
         try:
             # 前回指定した献立プランIDを取得
-            user_crud = UserCrud(self.user_id, self.db)
+            user_crud = UserCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             menu_plan_id = user_crud.get_toweek_menu_plan_id()
 
             # 前回の指定がない場合は終了
             if not menu_plan_id:
-                return 
+                return MenuPlanDisp(
+                    menu_plan_id = None,
+                    menu_plan_nm = "未選択",
+                    menu_plan_nm_k = None
+                )
             
-            menu_plan_crud = MenuPlanCrud(self.user_id, self.db)
+            menu_plan_crud = MenuPlanCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             menu_plan = menu_plan_crud.get_menu_plan(menu_plan_id)
             return MenuPlanDisp.from_menu_plan(menu_plan)
 
@@ -36,7 +39,7 @@ class HomeService(BaseService):
     def fetch_toweek_menu_plan_det(self) -> dict[str, list]:
 
         try:
-            work_crud = WorkCrud(self.user_id, self.db)
+            work_crud = WorkCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             toweek_menu_plan_det_list = work_crud.get_toweek_menu_plan_det_list()
 
             # 今週献立明細リストを明細ごとに曜日をキーとした辞書変数にセット
@@ -52,25 +55,26 @@ class HomeService(BaseService):
 
         try:
             # 既存のワークデータを削除
-            work_crud = WorkCrud(self.user_id, self.db)
+            work_crud = WorkCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             work_crud.delete_toweek_menu_plan_det_all()
             work_crud.delete_buy_ingred_all()
 
             # 指定した献立プランをユーザー設定に登録
-            user_crud = UserCrud(self.user_id, self.db)
+            user_crud = UserCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             user_crud.update_toweek_menu_plan(selected_plan_id)
 
-            # 指定した献立プランに紐付く献立明細を
-            menu_plan_crud = MenuPlanCrud(self.user_id, self.db)
+            # 指定した献立プランに紐付く献立明細を取得
+            menu_plan_crud = MenuPlanCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             menu_plan_det_list = menu_plan_crud.get_menu_plan_det_list(selected_plan_id)
 
             # ワークデータを登録
             new_toweek_menu_plan_det_list = work_crud.create_toweek_menu_plan_det_list(menu_plan_det_list)
             work_crud.create_buy_ingred_from_selected_plan()
 
+            self.db.commit()
+
             # 今週献立明細リストを明細ごとに曜日をキーとした辞書変数にセット
             new_toweek_menu_plan_det_list_dict = self.cnv_menu_plan_det_list_map_to_weekday_dict(new_toweek_menu_plan_det_list)
-
             return new_toweek_menu_plan_det_list_dict
 
         except Exception as e:
@@ -106,14 +110,16 @@ class HomeService(BaseService):
     def add_toweek_menu_plan_det(self, recipe_nm: str, weekday_cd: str) -> ToweekMenuPlanDetDisp:
 
         try:
-            recipe_crud = RecipeCrud(self.user_id, self.db)
+            recipe_crud = RecipeCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             recipe = recipe_crud.get_recipe_from_nm(recipe_nm)
 
-            work_crud = WorkCrud(self.user_id, self.db)
+            work_crud = WorkCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             new_toweek_menu_plan_det = work_crud.create_toweek_menu_plan_det(recipe.recipe_id, weekday_cd)
 
             # 追加するレシピの食材を購入食材に追加 or 必要量更新
             work_crud.sum_buy_ingred_from_recipe(recipe)
+
+            self.db.commit()
 
             return ToweekMenuPlanDetDisp.from_toweek_menu_plan_det(new_toweek_menu_plan_det)
 
@@ -125,10 +131,10 @@ class HomeService(BaseService):
     def edit_toweek_menu_plan_det(self, toweek_menu_plan_det_id: int, recipe_nm: str) -> ToweekMenuPlanDetDisp:
 
         try:
-            recipe_crud = RecipeCrud(self.user_id, self.db)
+            recipe_crud = RecipeCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             new_recipe = recipe_crud.get_recipe_from_nm(recipe_nm)
 
-            work_crud = WorkCrud(self.user_id, self.db)
+            work_crud = WorkCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             bef_toweek_menu_plan_det = work_crud.get_toweek_menu_plan_det(toweek_menu_plan_det_id)
             bef_recipe = recipe_crud.get_recipe(bef_toweek_menu_plan_det.recipe_id)
 
@@ -139,6 +145,8 @@ class HomeService(BaseService):
 
             # 更新後レシピの食材を購入食材に追加 or 必要量更新
             work_crud.sum_buy_ingred_from_recipe(new_recipe)
+
+            self.db.commit()
             
             return ToweekMenuPlanDetDisp.from_toweek_menu_plan_det(edit_toweek_menu_plan_det)
 
@@ -150,16 +158,18 @@ class HomeService(BaseService):
     def delete_toweek_menu_plan_det(self, toweek_menu_plan_det_id: int):
 
         try:
-            work_crud = WorkCrud(self.user_id, self.db)
+            work_crud = WorkCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             toweek_menu_plan_det = work_crud.get_toweek_menu_plan_det(toweek_menu_plan_det_id)
 
-            recipe_crud = RecipeCrud(self.user_id, self.db)
+            recipe_crud = RecipeCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             recipe = recipe_crud.get_recipe(toweek_menu_plan_det.recipe_id)
 
             work_crud.delete_toweek_menu_plan_det(toweek_menu_plan_det_id)
 
             # 削除するレシピの食材を購入食材から削除 or 必要量更新
             work_crud.reduce_buy_ingred_from_recipe(recipe)
+
+            self.db.commit()
 
             return
 

@@ -6,7 +6,7 @@ from app.models import IngredUnitConv
 class IngredUnitConvDisp(CamelModel):
     ingred_unit_conv_id: int
     ingred_id: int
-    from_unit_cd: str
+    conv_unit_cd: str
     conv_rate: float
     conv_weight: Optional[int]=None
 
@@ -15,6 +15,6 @@ class IngredUnitConvDisp(CamelModel):
         return cls(
             ingred_unit_conv_id = ingred_unit_conv.ingred_unit_conv_id, 
             ingred_id = ingred_unit_conv.ingred_id,
-            from_unit_cd = ingred_unit_conv.from_unit_cd,
+            conv_unit_cd = ingred_unit_conv.conv_unit_cd,
             conv_rate = ingred_unit_conv.conv_rate,
         )

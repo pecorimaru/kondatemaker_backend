@@ -6,8 +6,8 @@ from app.crud.app_const_crud import AppConstCrud
 
 
 class AppConstService(BaseService):
-    def __init__(self, user_id: int, db: Session):
-        super().__init__(user_id, db)
+    def __init__(self, db: Session):
+        super().__init__(None, None, None, db)
 
 
     def fetch_app_const_dict(self, type_cd: str):

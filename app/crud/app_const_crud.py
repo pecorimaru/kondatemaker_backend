@@ -9,7 +9,7 @@ from app.models.AppConst import AppConst
 
 class AppConstCrud(BaseService):
     def __init__(self, db: Session):
-        super().__init__(None, db)
+        super().__init__(None, None, None, db)
 
 
     @lru_cache(maxsize=5000) 

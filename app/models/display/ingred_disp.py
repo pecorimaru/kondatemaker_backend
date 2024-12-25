@@ -8,7 +8,7 @@ class IngredDisp(CamelModel):
     ingred_nm: str
     ingred_nm_k: Optional[str]=None
     parent_ingred_nm: str
-    standard_unit_cd: str
+    buy_unit_cd: str
     unit_conv_weight: Optional[int]=None
     sales_area_type: str
 
@@ -19,7 +19,7 @@ class IngredDisp(CamelModel):
             ingred_nm = ingred.ingred_nm,
             ingred_nm_k = ingred.ingred_nm_k,
             parent_ingred_nm = ingred.parent_ingred_nm,
-            standard_unit_cd = ingred.standard_unit_cd,
+            buy_unit_cd = ingred.buy_unit_cd,
             sales_area_type = ingred.sales_area_type,
         )
 
@@ -31,6 +31,6 @@ class DefaultSets(CamelModel):
     @classmethod
     def from_ingred(cls, ingred: Ingred):
         return cls(
-            unit_cd = ingred.standard_unit_cd,
+            unit_cd = ingred.buy_unit_cd,
             sales_area_type = ingred.sales_area_type,
         )

@@ -10,7 +10,6 @@ class RecipeDisp(CamelModel):
     recipe_nm_k: Optional[str]=None
     recipe_type: str
     recipe_url: Optional[str]=None
-    visibility_flg: str
 
     @classmethod
     def from_recipe(cls, recipe: Recipe):
@@ -20,5 +19,4 @@ class RecipeDisp(CamelModel):
             recipe_nm_k = recipe.recipe_nm_k,
             recipe_type = recipe.recipe_type,
             recipe_url = recipe.recipe_url,
-            visibility_flg = recipe.visibility_flg,
         )

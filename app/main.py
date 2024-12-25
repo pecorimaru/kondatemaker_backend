@@ -2,6 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.security import OAuth2PasswordBearer
 
 from dotenv import load_dotenv
 import os
@@ -15,9 +16,11 @@ from app.api.recipe import router as recipe_router
 from app.api.recipe_form import router as recipe_form_router
 from app.api.menu_plan import router as menu_plan_router
 from app.api.app_const import router as const_router
+from app.api.setting import router as setting_router
 from app.core.global_event_handlers import global_event_handlers
 
 app = FastAPI()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 load_dotenv()
 client_url = os.getenv("CLIENT_URL")
@@ -53,6 +56,7 @@ app.include_router(recipe_router, prefix="/api/recipe")
 app.include_router(recipe_form_router, prefix="/api/recipeForm")
 app.include_router(menu_plan_router, prefix="/api/menuPlan")
 app.include_router(const_router, prefix="/api/const")
+app.include_router(setting_router, prefix="/api/setting")
 # テストコメント
 
 if __name__ == "__main__":

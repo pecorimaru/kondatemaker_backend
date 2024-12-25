@@ -8,14 +8,14 @@ from app.utils import constants as const
 from app.services.app_const_service import AppConstService
 
 class IngredFormService(BaseService):
-    def __init__(self, user_id: int, db: Session):
-        super().__init__(user_id, db)
+    def __init__(self, user_id: int, group_id: int, owner_user_id: int, db: Session):
+        super().__init__(user_id, group_id, owner_user_id, db)
 
 
     def fetch_default_sets_by_ingred(self, ingred_nm: str) -> DefaultSets:
 
         try:        
-            ingred_crud = IngredCrud(self.user_id, self.db)
+            ingred_crud = IngredCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             ingred = ingred_crud.get_ingred_from_nm(ingred_nm)
             if ingred:
                 default_sets = DefaultSets.from_ingred(ingred)
@@ -30,12 +30,12 @@ class IngredFormService(BaseService):
     def fetch_unit_dict_by_ingred(self, ingred_nm: str) -> dict[str, str]:
 
         try:
-            ingred_crud = IngredCrud(self.user_id, self.db)
+            ingred_crud = IngredCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             ingred = ingred_crud.get_ingred_from_nm(ingred_nm)
 
             if ingred:
                 # 食材ごとに登録した単位変換情報を単位でリスト化
-                unit_cd_list = [ingred_unit_conv.from_unit_cd for ingred_unit_conv in ingred.rel_m_ingred_unit_conv] 
+                unit_cd_list = [ingred_unit_conv.conv_unit_cd for ingred_unit_conv in ingred.rel_m_ingred_unit_conv] 
 
                 const_crud = AppConstCrud(self.db)
                 const_unit_cd_list = const_crud.get_app_consts(const.APP_CONST_C0002_UNIT_TYPE)
@@ -49,9 +49,8 @@ class IngredFormService(BaseService):
                 return unit_dict_by_ingred
 
             # 食材マスタに登録がない場合、全ての選択肢を追加
-            app_service = AppConstService(self.user_id, self.db)
+            app_service = AppConstService(self.db)
             unit_dict_by_ingred = app_service.fetch_app_const_dict(const.APP_CONST_C0002_UNIT_TYPE)
-
             return unit_dict_by_ingred
 
         except Exception as e:
@@ -62,7 +61,7 @@ class IngredFormService(BaseService):
     def fetch_ingred_nm_suggestions(self, input_value: str) -> list[str]:
 
         try:
-            ingred_crud = IngredCrud(self.user_id, self.db)
+            ingred_crud = IngredCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             ingred_nm_suggestions = ingred_crud.get_ingred_nm_suggestions(input_value)
             return ingred_nm_suggestions
 

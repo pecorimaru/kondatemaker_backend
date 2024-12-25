@@ -4,13 +4,15 @@ import inspect
 
 from app.core.method_info import Param
 from app.utils.log_utils import logger
-from app.utils import message_utils
+from app.utils import message_utils as msg
 
 
 class BaseService():
 
-    def __init__(self, user_id: int, db: Session):
+    def __init__(self, user_id: int, group_id: int, owner_user_id: int, db: Session):
         self.user_id = user_id
+        self.group_id = group_id
+        self.owner_user_id = owner_user_id
         self.db = db
 
 
@@ -37,8 +39,8 @@ class BaseService():
         if type(e) == HTTPException:
             raise e
 
-        logger.error(message_utils.get_error_log_message(e, method_nm, params, message_utils.ME0002_SYSTEM_ERROR))
+        logger.error(msg.get_error_log_message(e, method_nm, params, msg.ME0002_SYSTEM_ERROR))
         raise HTTPException(
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail = message_utils.get_message(message_utils.ME0002_SYSTEM_ERROR)
+            detail = msg.get_message(msg.ME0002_SYSTEM_ERROR)
         )

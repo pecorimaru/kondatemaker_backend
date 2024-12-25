@@ -104,26 +104,8 @@ def write_text_file(save_path: str, body_list: Tuple[str], write_type: str="w", 
             f.write(body)
  
     return
- 
- 
-def cut_box_prefix(path: str):
-    """
-    「Box」以前のパスを除去する
- 
-    Parameters
-    ----------
-    path          :    保存パス
-    
-    Returns
-    ----------
-    removed_path  :    除去後パス
- 
-    """
- 
-    removed_path = path[path.find("Box"):len(path)]
- 
-    return removed_path
- 
+
+
 def add_userprofile_prefix(path: str):
     """
     先頭に環境変数「%USERPROFILE%」を付与したパスを取得する

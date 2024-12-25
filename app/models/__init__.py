@@ -4,7 +4,7 @@ from app.models.Recipe import Recipe
 from app.models.RecipeIngred import RecipeIngred
 from app.models.User import User
 from app.models.UserConfig import UserConfig
-from app.models.UserGroupRel import UserGroupRel
+from app.models.GroupConfig import GroupConfig
 from app.models.MenuPlan import MenuPlan
 from app.models.MenuPlanDet import MenuPlanDet
 from app.models.Group import Group

@@ -1,9 +1,10 @@
+from typing import Optional
 from app.utils.api_utils import CamelModel
 from app.models import User
 
 
 class UserDisp(CamelModel):
-    user_id: int
+    user_id: Optional[int]=None
     user_nm: str
 
     @classmethod

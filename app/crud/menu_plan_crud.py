@@ -7,22 +7,9 @@ from app.models import Recipe, MenuPlan, MenuPlanDet
 from app.utils import db_utils
 
 
-# class MenuPlanDisp(CamelModel):
-#     menu_plan_id: int
-#     menu_plan_nm: str
-#     menu_plan_nm_k: Optional[str]=None
-
-# class MenuPlanDetDisp(CamelModel):
-#     menu_plan_det_id: int
-#     menu_plan_id: int
-#     weekday_cd: str
-#     recipe_id: int
-#     recipe_nm: str
-
-
 class MenuPlanCrud(BaseService):
-    def __init__(self, user_id: int, db: Session):
-        super().__init__(user_id, db)
+    def __init__(self, user_id: int, group_id: int, owner_user_id: int, db: Session):
+        super().__init__(user_id, group_id, owner_user_id, db)
 
 
     def get_menu_plan(self, menu_plan_id: int) -> MenuPlan:
@@ -39,7 +26,7 @@ class MenuPlanCrud(BaseService):
     def get_menu_plan_list(self) -> list[MenuPlan]:
 
         try:
-            menu_plan_list = self.db.query(MenuPlan).filter(MenuPlan.owner_user_id == self.user_id).order_by(MenuPlan.menu_plan_nm_k, MenuPlan.menu_plan_nm).all()
+            menu_plan_list = self.db.query(MenuPlan).filter(MenuPlan.owner_user_id == self.owner_user_id).order_by(MenuPlan.menu_plan_nm_k, MenuPlan.menu_plan_nm).all()
             if menu_plan_list:
                 return menu_plan_list
             return []
@@ -52,10 +39,21 @@ class MenuPlanCrud(BaseService):
     def get_menu_plan_det_list(self, menu_plan_id: str) -> list[MenuPlanDet]:
 
         try:
-            menu_plan_det_list = self.db.query(MenuPlanDet).filter(MenuPlanDet.menu_plan_id == menu_plan_id).order_by(MenuPlanDet.week_day_cd).all()
+            menu_plan_det_list = self.db.query(MenuPlanDet).filter(MenuPlanDet.menu_plan_id == menu_plan_id).order_by(MenuPlanDet.weekday_cd).all()
             if menu_plan_det_list:
                 return menu_plan_det_list
             return []
+
+        except SQLAlchemyError as e:
+            method_nm = self.get_method_nm()
+            self.handle_system_error(e, method_nm, self.get_params(method_nm))
+
+
+    def get_menu_plan_det_list_from_recipe_id(self, recipe_id: int) -> list[MenuPlanDet]:
+
+        try:
+            menu_plan_det_list = self.db.query(MenuPlanDet).filter(MenuPlanDet.recipe_id == recipe_id).all()
+            return menu_plan_det_list
 
         except SQLAlchemyError as e:
             method_nm = self.get_method_nm()
@@ -70,17 +68,18 @@ class MenuPlanCrud(BaseService):
             new_menu_plan = MenuPlan(
                 menu_plan_nm = menu_plan_nm,
                 menu_plan_nm_k = menu_plan_nm_k,
-                owner_user_id = self.user_id,
+                owner_user_id = self.owner_user_id,
                 visibility_flg = 'F',
-                crt_at = time_stamp,
-                upd_at = time_stamp,
-                crt_by = self.user_id,
-                upd_by = self.user_id,
+                crt_timestamp = time_stamp,
+                upd_timestamp = time_stamp,
+                crt_user_id = self.user_id,
+                upd_user_id = self.user_id,
                 version = 0
             )
 
             self.db.add(new_menu_plan)
-            self.db.commit()
+            self.db.flush()
+
             return new_menu_plan
 
         except SQLAlchemyError as e:
@@ -97,11 +96,10 @@ class MenuPlanCrud(BaseService):
             edit_menu_plan = self.db.query(MenuPlan).filter(MenuPlan.menu_plan_id == menu_plan_id).one()
             edit_menu_plan.menu_plan_nm = menu_plan_nm
             edit_menu_plan.menu_plan_nm_k = menu_plan_nm_k
-            edit_menu_plan.upd_at = time_stamp
-            edit_menu_plan.upd_by = self.user_id
+            edit_menu_plan.upd_timestamp = time_stamp
+            edit_menu_plan.upd_user_id = self.user_id
             edit_menu_plan.version = edit_menu_plan.version + 1
 
-            self.db.commit()
             return edit_menu_plan
 
 
@@ -115,7 +113,7 @@ class MenuPlanCrud(BaseService):
 
         try:
             self.db.query(MenuPlan).filter(MenuPlan.menu_plan_id == menu_plan_id).delete()
-            self.db.commit()
+
             return
             
         except SQLAlchemyError as e:
@@ -124,39 +122,40 @@ class MenuPlanCrud(BaseService):
             self.handle_system_error(e, method_nm, self.get_params(method_nm))
 
 
-    def delete_menu_plan_det_from_menu_plan(self, menu_plan_id: int):
+    def delete_menu_plan_all(self):
 
         try:
-            self.db.query(MenuPlanDet).filter(MenuPlanDet.menu_plan_id == menu_plan_id).delete()
-            self.db.commit()
-            return 
+            self.db.query(MenuPlan).filter(MenuPlan.owner_user_id == self.owner_user_id).delete()
 
+            return
+            
         except SQLAlchemyError as e:
             self.db.rollback()
             method_nm = self.get_method_nm()
             self.handle_system_error(e, method_nm, self.get_params(method_nm))
-
+            
 
     def create_menu_plan_det(self, menu_plan_id: str, weekday_cd: str, recipe_nm: str) -> MenuPlanDet:
 
         time_stamp = db_utils.get_timestamp()
 
         try:
-            recipe = self.db.query(Recipe).filter(Recipe.recipe_nm == recipe_nm, Recipe.owner_id == self.user_id).one()
+            recipe = self.db.query(Recipe).filter(Recipe.recipe_nm == recipe_nm, Recipe.owner_user_id == self.owner_user_id).one()
 
             new_menu_plan_det = MenuPlanDet(
                 menu_plan_id = menu_plan_id,
-                week_day_cd = weekday_cd,
+                weekday_cd = weekday_cd,
                 recipe_id = recipe.recipe_id,
-                crt_at = time_stamp,
-                upd_at = time_stamp,
-                crt_by = self.user_id,
-                upd_by = self.user_id,
+                crt_timestamp = time_stamp,
+                upd_timestamp = time_stamp,
+                crt_user_id = self.user_id,
+                upd_user_id = self.user_id,
                 version = 0
             )
 
             self.db.add(new_menu_plan_det)
-            self.db.commit()
+            self.db.flush()
+
             return new_menu_plan_det
 
         except SQLAlchemyError as e:
@@ -170,15 +169,14 @@ class MenuPlanCrud(BaseService):
         time_stamp = db_utils.get_timestamp()
 
         try:
-            recipe = self.db.query(Recipe).filter(Recipe.recipe_nm == recipe_nm, Recipe.owner_id == self.user_id).one()
+            recipe = self.db.query(Recipe).filter(Recipe.recipe_nm == recipe_nm, Recipe.owner_user_id == self.owner_user_id).one()
             edit_menu_plan_det = self.db.query(MenuPlanDet).filter(MenuPlanDet.menu_plan_det_id == menu_plan_det_id).one()
-            edit_menu_plan_det.week_day_cd = weekday_cd
+            edit_menu_plan_det.weekday_cd = weekday_cd
             edit_menu_plan_det.recipe_id = recipe.recipe_id
-            edit_menu_plan_det.upd_at = time_stamp
-            edit_menu_plan_det.upd_by = self.user_id
+            edit_menu_plan_det.upd_timestamp = time_stamp
+            edit_menu_plan_det.upd_user_id = self.user_id
             edit_menu_plan_det.version = edit_menu_plan_det.version + 1
 
-            self.db.commit()
             return edit_menu_plan_det
 
         except SQLAlchemyError as e:
@@ -191,7 +189,7 @@ class MenuPlanCrud(BaseService):
 
         try:
             self.db.query(MenuPlanDet).filter(MenuPlanDet.menu_plan_det_id == menu_plan_det_id).delete()
-            self.db.commit()
+
             return 
 
         except SQLAlchemyError as e:
@@ -200,21 +198,14 @@ class MenuPlanCrud(BaseService):
             self.handle_system_error(e, method_nm, self.get_params(method_nm))
 
 
-    # def cnv_model_to_menu_plan_disp(self, menu_plan: MenuPlan) -> MenuPlanDisp:
+    def delete_menu_plan_det_from_menu_plan(self, menu_plan_id: int):
 
-    #     return MenuPlanDisp(
-    #         menu_plan_id = menu_plan.menu_plan_id,
-    #         menu_plan_nm = menu_plan.menu_plan_nm,
-    #         menu_plan_nm_k = menu_plan.menu_plan_nm_k,
-    #     )
+        try:
+            self.db.query(MenuPlanDet).filter(MenuPlanDet.menu_plan_id == menu_plan_id).delete()
 
+            return 
 
-    # def cnv_model_to_menu_plan_det_disp(self, menu_plan_det: MenuPlanDet) -> MenuPlanDetDisp:
-
-    #     return MenuPlanDetDisp(
-    #         menu_plan_det_id = menu_plan_det.menu_plan_det_id,
-    #         menu_plan_id = menu_plan_det.menu_plan_id,
-    #         weekday_cd = menu_plan_det.week_day_cd,
-    #         recipe_id = menu_plan_det.recipe_id,
-    #         recipe_nm = menu_plan_det.rel_t_recipe.recipe_nm,
-    #     )
+        except SQLAlchemyError as e:
+            self.db.rollback()
+            method_nm = self.get_method_nm()
+            self.handle_system_error(e, method_nm, self.get_params(method_nm))
