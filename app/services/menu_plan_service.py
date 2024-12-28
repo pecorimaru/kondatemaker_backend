@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.core.base_service import BaseService
 from app.models.display import MenuPlanDisp, MenuPlanDetDisp
 from app.crud import MenuPlanCrud, RecipeCrud
-from app.validators import recipe_validators
+from app.validators import recipe_validators, menu_plan_validators
 
 
 class MenuPlanService(BaseService):
@@ -49,7 +49,13 @@ class MenuPlanService(BaseService):
 
         try:
             menu_plan_crud = MenuPlanCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
+
+            # 献立プランの一意チェック
+            menu_plan = menu_plan_crud.get_menu_plan_from_nm(menu_plan_nm)
+            menu_plan_validators.check_menu_plan_unique(menu_plan)
+
             new_menu_plan = menu_plan_crud.create_menu_plan(menu_plan_nm, menu_plan_nm_k)
+            self.db.commit()
 
             return MenuPlanDisp.from_menu_plan(new_menu_plan)
 
@@ -62,7 +68,15 @@ class MenuPlanService(BaseService):
 
         try:
             menu_plan_crud = MenuPlanCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
+
+            # 献立プランの一意チェック
+            old_menu_plan = menu_plan_crud.get_menu_plan(menu_plan_id)
+            if old_menu_plan.menu_plan_nm != menu_plan_nm:
+                menu_plan = menu_plan_crud.get_menu_plan_from_nm(menu_plan_nm)
+                menu_plan_validators.check_menu_plan_unique(menu_plan)
+
             new_menu_plan = menu_plan_crud.update_menu_plan(menu_plan_id, menu_plan_nm, menu_plan_nm_k)
+            self.db.commit()
 
             return MenuPlanDisp.from_menu_plan(new_menu_plan)
 
@@ -77,6 +91,7 @@ class MenuPlanService(BaseService):
             menu_plan_crud = MenuPlanCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             menu_plan_crud.delete_menu_plan_det_from_menu_plan(menu_plan_id)
             menu_plan_crud.delete_menu_plan(menu_plan_id)
+            self.db.commit()
 
             return
 
@@ -87,14 +102,16 @@ class MenuPlanService(BaseService):
 
     def add_menu_plan_det(self, menu_plan_id: int, weekday_cd: str, recipe_nm: str):
 
-        try:
-            # 入力したレシピが存在しない場合
-            recipe_crud = RecipeCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
-            recipe = recipe_crud.get_recipe_from_nm(recipe_nm)
-            recipe_validators.exist_recipe(recipe, recipe_nm)
-
+        try:            
             menu_plan_crud = MenuPlanCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
+            recipe_crud = RecipeCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
+            
+            # レシピの存在チェック
+            recipe = recipe_crud.get_recipe_from_nm(recipe_nm)
+            recipe_validators.check_recipe_exists(recipe, recipe_nm)
+            
             new_menu_plan_det = menu_plan_crud.create_menu_plan_det(menu_plan_id, weekday_cd, recipe_nm)
+            self.db.commit()
 
             return MenuPlanDetDisp.from_menu_plan_det(new_menu_plan_det)
 
@@ -106,13 +123,15 @@ class MenuPlanService(BaseService):
     def edit_menu_plan_det(self, menu_plan_det_id: int, weekday_cd: str, recipe_nm: str):
 
         try:
-            # 入力したレシピが存在しない場合
-            recipe_crud = RecipeCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
-            recipe = recipe_crud.get_recipe_from_nm(recipe_nm)
-            recipe_validators.exist_recipe(recipe, recipe_nm)
-
             menu_plan_crud = MenuPlanCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
+            recipe_crud = RecipeCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
+
+            # レシピの存在チェック
+            recipe = recipe_crud.get_recipe_from_nm(recipe_nm)
+            recipe_validators.check_recipe_exists(recipe, recipe_nm)
+
             new_menu_plan_det = menu_plan_crud.update_menu_plan_det(menu_plan_det_id, weekday_cd, recipe_nm)
+            self.db.commit()
 
             return MenuPlanDetDisp.from_menu_plan_det(new_menu_plan_det)
 
@@ -125,7 +144,9 @@ class MenuPlanService(BaseService):
 
         try:
             menu_plan_crud = MenuPlanCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
+            
             menu_plan_crud.delete_menu_plan_det(menu_plan_det_id)
+            self.db.commit()
 
             return
 

@@ -123,11 +123,6 @@ class RecipeCrud(BaseService):
     def delete_recipe(self, recipe_id: int) -> list[MenuPlanDet]:
 
         try:
-            menu_plan_crud = MenuPlanCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
-            menu_plan_det_list = menu_plan_crud.get_menu_plan_det_list_from_recipe_id(recipe_id)
-            if menu_plan_det_list:
-                return menu_plan_det_list
-
             self.db.query(Recipe).filter(Recipe.recipe_id == recipe_id, Recipe.owner_user_id == self.owner_user_id).delete()
 
             return
@@ -138,7 +133,7 @@ class RecipeCrud(BaseService):
             self.handle_system_error(e, method_nm, self.get_params(method_nm))
 
 
-    def delete_recipe_all(self):
+    def delete_recipes_from_owner(self):
 
         try:
             self.db.query(Recipe).filter(Recipe.owner_user_id == self.owner_user_id).delete()
@@ -166,7 +161,6 @@ class RecipeCrud(BaseService):
 
         try:
             recipe_ingred = self.db.query(RecipeIngred).filter(RecipeIngred.recipe_id == recipe_id, RecipeIngred.ingred_id == ingred_id).one_or_none();
-
             return recipe_ingred
 
         except SQLAlchemyError as e:
@@ -178,6 +172,17 @@ class RecipeCrud(BaseService):
 
         try:
             recipe_ingred_list = self.db.query(RecipeIngred).filter(RecipeIngred.recipe_id == recipe_id).all();
+            return recipe_ingred_list
+
+        except SQLAlchemyError as e:
+            method_nm = self.get_method_nm()
+            self.handle_system_error(e, method_nm, self.get_params(method_nm))
+
+
+    def get_recipe_ingred_list_from_ingred(self, ingred_id: int) -> list[RecipeIngred]:
+
+        try:
+            recipe_ingred_list = self.db.query(RecipeIngred).filter(RecipeIngred.ingred_id == ingred_id).one_or_none();
 
             return recipe_ingred_list
 
@@ -186,14 +191,14 @@ class RecipeCrud(BaseService):
             self.handle_system_error(e, method_nm, self.get_params(method_nm))
 
 
-    def create_recipe_ingred(self, recipe_id: int, qty: float, unit_cd: str, ingred: Ingred) -> RecipeIngred:
+    def create_recipe_ingred(self, recipe_id: int, ingred_id: int, qty: float, unit_cd: str) -> RecipeIngred:
 
         time_stamp = db_utils.get_timestamp()
 
         try:
             new_recipe_ingred = RecipeIngred(
                 recipe_id = recipe_id,
-                ingred_id = ingred.ingred_id,
+                ingred_id = ingred_id,
                 qty = qty,
                 unit_cd = unit_cd,
                 crt_timestamp = time_stamp,
@@ -214,13 +219,13 @@ class RecipeCrud(BaseService):
             self.handle_system_error(e, method_nm, self.get_params(method_nm))
 
 
-    def update_recipe_ingred(self, recipe_ingred_id: int, qty: float, unit_cd: str, ingred: Ingred) -> RecipeIngred:
+    def update_recipe_ingred(self, recipe_ingred_id: int, ingred_id: int, qty: float, unit_cd: str) -> RecipeIngred:
 
         time_stamp = db_utils.get_timestamp()
 
         try:
             edit_recipe_ingred = self.db.query(RecipeIngred).filter(RecipeIngred.recipe_ingred_id == recipe_ingred_id).one()
-            edit_recipe_ingred.ingred_id = ingred.ingred_id
+            edit_recipe_ingred.ingred_id = ingred_id
             edit_recipe_ingred.qty = qty
             edit_recipe_ingred.unit_cd = unit_cd
             edit_recipe_ingred.upd_timestamp = time_stamp
@@ -248,7 +253,7 @@ class RecipeCrud(BaseService):
             self.handle_system_error(e, method_nm, self.get_params(method_nm))
 
 
-    def delete_recipe_ingred_all(self, recipe_id: int):
+    def delete_recipe_ingreds_from_recipe(self, recipe_id: int):
 
         try:
             self.db.query(RecipeIngred).filter(RecipeIngred.recipe_id == recipe_id).delete()

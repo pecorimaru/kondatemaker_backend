@@ -146,7 +146,19 @@ class IngredCrud(BaseService):
             self.handle_system_error(e, method_nm, self.get_params(method_nm))
 
 
-    def get_ingred_unit_conv(self, ingred_id: int, conv_unit_cd: str) -> IngredUnitConv:
+    def get_ingred_unit_conv(self, ingred_unit_conv_id: int) -> IngredUnitConv:
+
+        try:
+            ingred_unit_conv = self.db.query(IngredUnitConv).filter(IngredUnitConv.ingred_unit_conv_id == ingred_unit_conv_id).one();
+
+            return ingred_unit_conv
+
+        except SQLAlchemyError as e:
+            method_nm = self.get_method_nm()
+            self.handle_system_error(e, method_nm, self.get_params(method_nm))
+
+
+    def get_ingred_unit_conv_from_conv_unit_cd(self, ingred_id: int, conv_unit_cd: str) -> IngredUnitConv:
 
         try:
             ingred_unit_conv = self.db \
@@ -161,7 +173,7 @@ class IngredCrud(BaseService):
             self.handle_system_error(e, method_nm, self.get_params(method_nm))
 
 
-    def get_ingred_unit_conv_list_without_standard(self, ingred_id: int, buy_unit_cd: str) -> list[IngredUnitConv]:
+    def get_ingred_unit_conv_from_conv_unit_cd_list_without_standard(self, ingred_id: int, buy_unit_cd: str) -> list[IngredUnitConv]:
 
         try:
             ingred_unit_conv_list = self.db \
@@ -236,7 +248,7 @@ class IngredCrud(BaseService):
             self.handle_system_error(e, method_nm, self.get_params(method_nm))
 
 
-    def delete_ingred_unit_conv_from_ingred(self, ingred_id: int):
+    def delete_ingred_unit_convs_from_ingred(self, ingred_id: int):
 
         try:
             self.db.query(IngredUnitConv).filter(IngredUnitConv.ingred_id == ingred_id).delete()
@@ -254,8 +266,8 @@ class IngredCrud(BaseService):
         time_stamp = db_utils.get_timestamp()
 
         try:
-            old_standard_ingred_unit_conv = self.get_ingred_unit_conv(ingred_id, old_buy_unit_cd)
-            new_standard_ingred_unit_conv = self.get_ingred_unit_conv(ingred_id, new_buy_unit_cd)
+            old_standard_ingred_unit_conv = self.get_ingred_unit_conv_from_conv_unit_cd(ingred_id, old_buy_unit_cd)
+            new_standard_ingred_unit_conv = self.get_ingred_unit_conv_from_conv_unit_cd(ingred_id, new_buy_unit_cd)
 
             # 購入単位(新)が変換単位として登録されている場合
             if new_standard_ingred_unit_conv:

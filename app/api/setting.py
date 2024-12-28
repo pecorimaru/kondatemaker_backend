@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, Request, Response, HTTPException
+from fastapi import APIRouter, Depends, status, Request, Response
 from sqlalchemy.orm import Session
 
 from typing import Optional
@@ -190,7 +190,7 @@ def activate_user(request: JoinGroupRequest, db: Session = Depends(get_db)):
 
     return JoinGroupResponse(
         status_code = status.HTTP_200_OK,
-        message = msg.get_message(msg.MI0006_ACTIVATE_USER_DONE),
+        message = msg.get_message(msg.MI0011_GROUP_JOIN_DONE),
     )
 
 

@@ -28,7 +28,7 @@ class SubmitAddToweekMenuPlanDetRequest(CamelModel):
 class SubmitAddToweekMenuPlanDetResponse(CamelModel):
     status_code: int
     message: Optional[str]=None
-    new_toweek_menu_plan_det: ToweekMenuPlanDetDisp
+    toweek_menu_plan_det_list_dict: Dict[str, list]
 
 class SubmitEditToweekMenuPlanDetRequest(CamelModel):
     toweek_menu_plan_det_id: int
@@ -37,7 +37,7 @@ class SubmitEditToweekMenuPlanDetRequest(CamelModel):
 class SubmitEditToweekMenuPlanDetResponse(CamelModel):
     status_code: int
     message: Optional[str]=None
-    edit_toweek_menu_plan_det: ToweekMenuPlanDetDisp
+    toweek_menu_plan_det_list_dict: Dict[str, list]
 
 class SubmitDeleteToweekMenuPlanDetResponse(CamelModel):
     status_code: int
@@ -82,12 +82,12 @@ def submit_add_toweek_menu_plan_det(request: SubmitAddToweekMenuPlanDetRequest, 
     login_info = decode_token(token)
 
     home_service = HomeService(login_info.user_id, login_info.group_id, login_info.owner_user_id, db)
-    new_toweek_menu_plan_det = home_service.add_toweek_menu_plan_det(request.recipe_nm, request.weekday_cd)
+    toweek_menu_plan_det_list_dict = home_service.add_toweek_menu_plan_det(request.recipe_nm, request.weekday_cd)
 
     return SubmitAddToweekMenuPlanDetResponse(
         status_code = status.HTTP_200_OK,
         message = msg.get_message(msg.MI0002_CREATE_SUCCESSFUL),
-        new_toweek_menu_plan_det = new_toweek_menu_plan_det,
+        toweek_menu_plan_det_list_dict = toweek_menu_plan_det_list_dict,
     )
 
 
@@ -96,12 +96,12 @@ def submit_edit_toweek_menu_plan_det(request: SubmitEditToweekMenuPlanDetRequest
     login_info = decode_token(token)
 
     home_service = HomeService(login_info.user_id, login_info.group_id, login_info.owner_user_id, db)
-    edit_toweek_menu_plan_det = home_service.edit_toweek_menu_plan_det(request.toweek_menu_plan_det_id, request.recipe_nm)
+    toweek_menu_plan_det_list_dict = home_service.edit_toweek_menu_plan_det(request.toweek_menu_plan_det_id, request.recipe_nm)
 
     return SubmitEditToweekMenuPlanDetResponse(
         status_code = status.HTTP_200_OK,
         message = msg.get_message(msg.MI0003_EDIT_SUCCESSFUL),
-        edit_toweek_menu_plan_det = edit_toweek_menu_plan_det,
+        toweek_menu_plan_det_list_dict = toweek_menu_plan_det_list_dict,
     )
 
 

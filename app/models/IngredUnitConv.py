@@ -18,7 +18,7 @@ class IngredUnitConv(Base):
     ingred_unit_conv_id = Column(Integer, primary_key=True, autoincrement=True)
     ingred_id = Column(Integer, ForeignKey('m_ingred.ingred_id'), nullable=False)
     conv_unit_cd = Column(String(2), nullable=False)
-    conv_rate = Column(Numeric(8, 2), nullable=False)
+    conv_rate = Column(Numeric(8, 4), nullable=False)
     crt_user_id = Column(Integer, ForeignKey("m_user.user_id"), nullable=False)
     crt_timestamp = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("now()"))
     upd_user_id = Column(Integer, ForeignKey("m_user.user_id"), nullable=False)

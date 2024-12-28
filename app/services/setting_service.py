@@ -92,14 +92,14 @@ class SettingService(BaseService):
                 recipe_crud = RecipeCrud(self.user_id, group.group_id, group.owner_user_id, self.db)
                 recipe_list = recipe_crud.get_recipe_list()
                 for recipe in recipe_list:
-                    recipe_crud.delete_recipe_ingred_all(recipe.recipe_id)
-                recipe_crud.delete_recipe_all()
+                    recipe_crud.delete_recipe_ingreds_from_recipe(recipe.recipe_id)
+                recipe_crud.delete_recipes_from_owner()
 
                 # 食材データの削除
                 ingred_crud = IngredCrud(self.user_id, group.group_id, group.owner_user_id, self.db)
                 ingred_list = ingred_crud.get_ingred_list()
                 for ingred in ingred_list:
-                    ingred_crud.delete_ingred_unit_conv_from_ingred(ingred.ingred_id)
+                    ingred_crud.delete_ingred_unit_convs_from_ingred(ingred.ingred_id)
                 ingred_crud.delete_ingred_all()
 
                 group_crud.delete_group_config_all(group.group_id)

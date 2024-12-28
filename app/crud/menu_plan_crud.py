@@ -15,7 +15,18 @@ class MenuPlanCrud(BaseService):
     def get_menu_plan(self, menu_plan_id: int) -> MenuPlan:
 
         try:
-            menu_plan = self.db.query(MenuPlan).filter(MenuPlan.menu_plan_id == menu_plan_id).one()
+            menu_plan = self.db.query(MenuPlan).filter(MenuPlan.menu_plan_id == menu_plan_id).one_or_none()
+            return menu_plan
+
+        except SQLAlchemyError as e:
+            method_nm = self.get_method_nm()
+            self.handle_system_error(e, method_nm, self.get_params(method_nm))
+
+
+    def get_menu_plan_from_nm(self, menu_plan_nm: str) -> MenuPlan:
+
+        try:
+            menu_plan = self.db.query(MenuPlan).filter(MenuPlan.menu_plan_nm == menu_plan_nm, MenuPlan.owner_user_id == self.owner_user_id).one()
             return menu_plan
 
         except SQLAlchemyError as e:

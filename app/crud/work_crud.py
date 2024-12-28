@@ -401,7 +401,7 @@ class WorkCrud(BaseService):
 
         try:
             ingred_crud = IngredCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
-            ingred_unit_conv = ingred_crud.get_ingred_unit_conv(recipe_ingred.ingred_id, recipe_ingred.unit_cd)
+            ingred_unit_conv = ingred_crud.get_ingred_unit_conv_from_conv_unit_cd(recipe_ingred.ingred_id, recipe_ingred.unit_cd)
             recalc_qty = recipe_ingred.qty / ingred_unit_conv.conv_rate
 
             return recalc_qty

@@ -2,7 +2,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.base_service import BaseService
-from app.crud import RecipeCrud, IngredCrud
+from app.crud import RecipeCrud, IngredCrud, MenuPlanCrud
 from app.models.display import RecipeDisp, RecipeIngredDisp
 from app.validators import recipe_validators, ingred_validators
 
@@ -36,7 +36,7 @@ class RecipeService(BaseService):
             recipe_crud = RecipeCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
 
             recipe = recipe_crud.get_recipe_from_nm(recipe_nm)
-            recipe_validators.recipe_not_duplicate(recipe, recipe_nm)
+            recipe_validators.check_recipe_unique(recipe)
             
             new_recipe = recipe_crud.create_recipe(recipe_nm, recipe_nm_k, recipe_type, recipe_url)
             self.db.commit()
@@ -53,8 +53,11 @@ class RecipeService(BaseService):
         try:
             recipe_crud = RecipeCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
 
-            recipe = recipe_crud.get_recipe_from_nm(recipe_nm)
-            recipe_validators.recipe_not_duplicate(recipe, recipe_nm)
+            # レシピ名が変更された場合は重複チェック
+            old_recipe = recipe_crud.get_recipe(recipe_id)
+            if old_recipe.recipe_nm != recipe_nm:
+                recipe = recipe_crud.get_recipe_from_nm(recipe_nm)
+                recipe_validators.check_recipe_unique(recipe)
 
             new_recipe = recipe_crud.update_recipe(recipe_id, recipe_nm, recipe_nm_k, recipe_type, recipe_url)
             self.db.commit()
@@ -70,11 +73,14 @@ class RecipeService(BaseService):
 
         try:
             recipe_crud = RecipeCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
+            menu_plan_crud = MenuPlanCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
 
-            # 削除対象のレシピが献立明細に参照されていた場合
-            menu_plan_det_list = recipe_crud.delete_recipe(recipe_id)
-            recipe_validators.recipe_not_referenced(menu_plan_det_list, recipe_crud, recipe_id)
+            # レシピの非参照チェック
+            menu_plan_det_list = menu_plan_crud.get_menu_plan_det_list_from_recipe_id(recipe_id)
+            recipe_validators.check_recipe_unreferenced(menu_plan_det_list)
 
+            recipe_crud.delete_recipe_ingreds_from_recipe(recipe_id)
+            recipe_crud.delete_recipe(recipe_id)
             self.db.commit()
 
             return
@@ -105,18 +111,17 @@ class RecipeService(BaseService):
 
         try:
             ingred_crud = IngredCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
-            ingred = ingred_crud.get_ingred_from_nm(ingred_nm)
-
-            # 入力した食材が存在しない場合
-            ingred_validators.exist_ingred(ingred, ingred_nm)
-
             recipe_crud = RecipeCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
 
-            # 同名の食材が既に登録されている場合
+            # 食材の存在チェック
+            ingred = ingred_crud.get_ingred_from_nm(ingred_nm)
+            ingred_validators.check_ingred_exists(ingred, ingred_nm)
+
+            # レシピ食材の一意チェック
             recipe_ingred = recipe_crud.get_recipe_ingred_from_ingred(recipe_id, ingred.ingred_id)
-            recipe_validators.ingred_not_duplicate(recipe_ingred, ingred_nm)
+            recipe_validators.check_recipe_ingred_unique(recipe_ingred)
                 
-            new_recipe_ingred = recipe_crud.create_recipe_ingred(recipe_id, qty, unit_cd, ingred)
+            new_recipe_ingred = recipe_crud.create_recipe_ingred(recipe_id, ingred.ingred_id, qty, unit_cd)
             self.db.commit()
 
             return RecipeIngredDisp.from_recipe_ingred(new_recipe_ingred)
@@ -130,19 +135,19 @@ class RecipeService(BaseService):
 
         try:
             ingred_crud = IngredCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
-            ingred = ingred_crud.get_ingred_from_nm(ingred_nm)
-
-            # 入力した食材が存在しない場合
-            ingred_validators.exist_ingred(ingred, ingred_nm)
-
             recipe_crud = RecipeCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
 
-            # 同名の食材が既に登録されている場合
-            current_recipe_ingred = recipe_crud.get_recipe_ingred(recipe_ingred_id)
-            recipe_ingred = recipe_crud.get_recipe_ingred_from_ingred(current_recipe_ingred.rel_t_recipe.recipe_id, ingred.ingred_id)
-            recipe_validators.ingred_not_duplicate(recipe_ingred, ingred_nm)
+            # 食材名が変更された場合は食材名の存在チェック
+            old_recipe_ingred = recipe_crud.get_recipe_ingred(recipe_ingred_id)
+            if old_recipe_ingred.rel_m_ingred.ingred_nm != ingred_nm:
+                ingred = ingred_crud.get_ingred_from_nm(ingred_nm)
+                ingred_validators.check_ingred_exists(ingred, ingred_nm)
+
+                # レシピ食材の一意チェック            
+                recipe_ingred = recipe_crud.get_recipe_ingred_from_ingred(old_recipe_ingred.recipe_id, ingred.ingred_id)
+                recipe_validators.check_recipe_ingred_unique(recipe_ingred)
             
-            new_recipe_ingred = recipe_crud.update_recipe_ingred(recipe_ingred_id, qty, unit_cd, ingred)
+            new_recipe_ingred = recipe_crud.update_recipe_ingred(recipe_ingred_id, ingred.ingred_id, qty, unit_cd)
             self.db.commit()
 
             return RecipeIngredDisp.from_recipe_ingred(new_recipe_ingred)

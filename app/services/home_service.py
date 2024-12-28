@@ -29,6 +29,14 @@ class HomeService(BaseService):
             
             menu_plan_crud = MenuPlanCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             menu_plan = menu_plan_crud.get_menu_plan(menu_plan_id)
+
+            if not menu_plan:
+                return MenuPlanDisp(
+                    menu_plan_id = None,
+                    menu_plan_nm = "削除されました",
+                    menu_plan_nm_k = None
+                )
+
             return MenuPlanDisp.from_menu_plan(menu_plan)
 
         except Exception as e:
@@ -121,7 +129,10 @@ class HomeService(BaseService):
 
             self.db.commit()
 
-            return ToweekMenuPlanDetDisp.from_toweek_menu_plan_det(new_toweek_menu_plan_det)
+            # 最新の今週献立明細リストを取得
+            toweek_menu_plan_det_list = work_crud.get_toweek_menu_plan_det_list()
+            toweek_menu_plan_det_list_dict = self.cnv_menu_plan_det_list_map_to_weekday_dict(toweek_menu_plan_det_list)
+            return toweek_menu_plan_det_list_dict
 
         except Exception as e:
             method_nm = self.get_method_nm()
@@ -148,7 +159,10 @@ class HomeService(BaseService):
 
             self.db.commit()
             
-            return ToweekMenuPlanDetDisp.from_toweek_menu_plan_det(edit_toweek_menu_plan_det)
+            # 最新の今週献立明細リストを取得
+            toweek_menu_plan_det_list = work_crud.get_toweek_menu_plan_det_list()
+            toweek_menu_plan_det_list_dict = self.cnv_menu_plan_det_list_map_to_weekday_dict(toweek_menu_plan_det_list)
+            return toweek_menu_plan_det_list_dict
 
         except Exception as e:
             method_nm = self.get_method_nm()
