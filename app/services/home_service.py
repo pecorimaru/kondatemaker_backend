@@ -65,7 +65,8 @@ class HomeService(BaseService):
             # 既存のワークデータを削除
             work_crud = WorkCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             work_crud.delete_toweek_menu_plan_det_all()
-            work_crud.delete_buy_ingred_all()
+            work_crud.delete_buy_ingred_other_than_fix_buy()
+            work_crud.reset_buy_ingred_fix_buy_flg()
 
             # 指定した献立プランをユーザー設定に登録
             user_crud = UserCrud(self.user_id, self.group_id, self.owner_user_id, self.db)

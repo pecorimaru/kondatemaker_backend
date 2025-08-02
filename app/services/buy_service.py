@@ -43,14 +43,14 @@ class BuyService(BaseService):
             self.handle_system_error(e, method_nm, self.get_params(method_nm))
 
 
-    def add_buy_ingred(self, ingred_nm: str, qty: float, unit_cd: str, sales_area_type: str) -> BuyIngredDisp:
+    def add_buy_ingred(self, ingred_nm: str, qty: float, unit_cd: str, sales_area_type: str, is_buy_every_week: bool) -> BuyIngredDisp:
 
         try:
             const_crud = AppConstCrud(self.db)
             const_sales_area_type = const_crud.get_app_const_from_val(const.APP_CONST_C0004_SALES_AREA_TYPE, sales_area_type)
 
             work_crud = WorkCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
-            new_buy_ingred = work_crud.create_buy_ingred(ingred_nm, qty, unit_cd, const_sales_area_type)
+            new_buy_ingred = work_crud.create_buy_ingred(ingred_nm, qty, unit_cd, const_sales_area_type, is_buy_every_week)
             self.db.commit()
 
             new_buy_ingred_disp = BuyIngredDisp.from_buy_ingred(new_buy_ingred)
@@ -61,14 +61,22 @@ class BuyService(BaseService):
             self.handle_system_error(e, method_nm, self.get_params(method_nm))
 
 
-    def edit_buy_ingred(self, buy_ingred_id: int, ingred_nm: str, qty: float, unit_cd: str, sales_area_type: str) -> BuyIngredDisp:
+    def edit_buy_ingred(
+        self, 
+        buy_ingred_id: int, 
+        ingred_nm: str, 
+        qty: float, 
+        unit_cd: str, 
+        sales_area_type: str, 
+        is_buy_every_week: bool
+    ) -> BuyIngredDisp:
 
         try:
             const_crud = AppConstCrud(self.db)
             const_sales_area_type = const_crud.get_app_const_from_val(const.APP_CONST_C0004_SALES_AREA_TYPE, sales_area_type)
 
             work_crud = WorkCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
-            new_buy_ingred = work_crud.update_buy_ingred(buy_ingred_id, ingred_nm, qty, unit_cd, const_sales_area_type)
+            new_buy_ingred = work_crud.update_buy_ingred(buy_ingred_id, ingred_nm, qty, unit_cd, const_sales_area_type, is_buy_every_week)
             self.db.commit()
 
             new_buy_ingred_disp = BuyIngredDisp.from_buy_ingred(new_buy_ingred)

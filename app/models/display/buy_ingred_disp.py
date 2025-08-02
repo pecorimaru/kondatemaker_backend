@@ -7,7 +7,7 @@ from app.models import BuyIngred
 class BuyIngredDisp(CamelModel):
     buy_ingred_id: int
     ingred_nm: str
-    qty: float
+    qty: Optional[float]=None
     unit_cd: str
     sales_area_type: str
     sales_area_seq: Optional[int]

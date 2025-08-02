@@ -23,11 +23,14 @@ app = FastAPI()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 load_dotenv()
-client_url = os.getenv("CLIENT_URL")
+client_url_list = os.getenv("CLIENT_URL_LIST").split(";")
+
+
+
 # CORSを設定して、Reactからのリクエストを許可する
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[client_url],  # ReactのサーバーURL
+    allow_origins=client_url_list,  # ReactのサーバーURL
     # allow_origins=["https://kondatemaker.mydns.jp"],  # ReactのサーバーURL
     
     allow_credentials=True,

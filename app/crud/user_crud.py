@@ -156,7 +156,7 @@ class UserCrud(BaseService):
         try:         
             user_config = self.db \
                 .query(UserConfig) \
-                .filter(UserConfig.user_id == self.user_id, UserConfig.config_type == const.USER_CONFIG_TYPE_2_TOWEEK_MENU_PLAN) \
+                .filter(UserConfig.user_id == self.owner_user_id, UserConfig.config_type == const.USER_CONFIG_TYPE_2_TOWEEK_MENU_PLAN) \
                 .one_or_none()
 
             if user_config:
@@ -168,8 +168,8 @@ class UserCrud(BaseService):
             # 初回選択時は新規登録
             else:
                 new_user_config = UserConfig(
-                    user_id = self.user_id,
-                    config_type = const.USER_CONFIG_2_TOWEEK_MENU_PLAN,
+                    user_id = self.owner_user_id,
+                    config_type = const.USER_CONFIG_TYPE_2_TOWEEK_MENU_PLAN,
                     config_val = selected_plan_id,
                     crt_timestamp = time_stamp,
                     crt_user_id = self.user_id,

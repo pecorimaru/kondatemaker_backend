@@ -27,7 +27,11 @@ class IngredCrud(BaseService):
     def get_ingred_list(self):
 
         try:
-            ingred_list = self.db.query(Ingred).filter(Ingred.owner_user_id == self.owner_user_id).order_by(Ingred.ingred_nm_k).all()
+            ingred_list = self.db \
+                .query(Ingred) \
+                .filter(Ingred.owner_user_id == self.owner_user_id) \
+                .order_by(Ingred.ingred_nm_k, Ingred.ingred_nm).all()
+
             return ingred_list
 
         except SQLAlchemyError as e:
@@ -57,7 +61,7 @@ class IngredCrud(BaseService):
                         Ingred.ingred_nm_k.like(f"%{input_value}%")
                         ), 
                         Ingred.owner_user_id == self.owner_user_id) \
-                    .order_by(Ingred.ingred_nm_k).all()
+                    .order_by(Ingred.ingred_nm_k, Ingred.ingred_nm).all()
             )
 
             # SQLAlchemyでは１項目のみで取得してもタプル型リスト[(Ingred.ingred_nm, ),...]になるため

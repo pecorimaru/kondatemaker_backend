@@ -26,7 +26,7 @@ class MenuPlanCrud(BaseService):
     def get_menu_plan_from_nm(self, menu_plan_nm: str) -> MenuPlan:
 
         try:
-            menu_plan = self.db.query(MenuPlan).filter(MenuPlan.menu_plan_nm == menu_plan_nm, MenuPlan.owner_user_id == self.owner_user_id).one()
+            menu_plan = self.db.query(MenuPlan).filter(MenuPlan.menu_plan_nm == menu_plan_nm, MenuPlan.owner_user_id == self.owner_user_id).one_or_none()
             return menu_plan
 
         except SQLAlchemyError as e:
@@ -80,7 +80,6 @@ class MenuPlanCrud(BaseService):
                 menu_plan_nm = menu_plan_nm,
                 menu_plan_nm_k = menu_plan_nm_k,
                 owner_user_id = self.owner_user_id,
-                visibility_flg = 'F',
                 crt_timestamp = time_stamp,
                 upd_timestamp = time_stamp,
                 crt_user_id = self.user_id,

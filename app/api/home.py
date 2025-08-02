@@ -44,7 +44,7 @@ class SubmitDeleteToweekMenuPlanDetResponse(CamelModel):
     message: Optional[str]=None
 
 
-@router.get("/slectedPlan")
+@router.get("/selectedPlan")
 def fetch_selected_plan(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     login_info = decode_token(token)
 
@@ -70,6 +70,7 @@ def submit_recreate_toweek_plan(request: SubmitRecreateToweekPlanRequest, db: Se
 
     home_service = HomeService(login_info.user_id, login_info.group_id, login_info.owner_user_id, db)
     new_toweek_menu_plan_det_list_dict = home_service.recreate_toweek_plan(request.selected_plan_id)
+    
     return SubmitRecreateToweekPlanResponse(
         status_code = status.HTTP_200_OK,
         message = msg.get_message(msg.MI0003_EDIT_SUCCESSFUL),

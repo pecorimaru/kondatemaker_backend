@@ -146,8 +146,12 @@ class RecipeService(BaseService):
                 # レシピ食材の一意チェック            
                 recipe_ingred = recipe_crud.get_recipe_ingred_from_ingred(old_recipe_ingred.recipe_id, ingred.ingred_id)
                 recipe_validators.check_recipe_ingred_unique(recipe_ingred)
+                edit_ingred_id = ingred.ingred_id
+
+            else:
+                edit_ingred_id = old_recipe_ingred.ingred_id
             
-            new_recipe_ingred = recipe_crud.update_recipe_ingred(recipe_ingred_id, ingred.ingred_id, qty, unit_cd)
+            new_recipe_ingred = recipe_crud.update_recipe_ingred(recipe_ingred_id, edit_ingred_id, qty, unit_cd)
             self.db.commit()
 
             return RecipeIngredDisp.from_recipe_ingred(new_recipe_ingred)

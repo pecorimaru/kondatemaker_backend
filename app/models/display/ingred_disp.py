@@ -9,8 +9,8 @@ class IngredDisp(CamelModel):
     ingred_nm_k: Optional[str]=None
     parent_ingred_nm: str
     buy_unit_cd: str
-    unit_conv_weight: Optional[int]=None
     sales_area_type: str
+    unit_conv_weight: Optional[int]=None
 
     @classmethod
     def from_ingred(cls, ingred: Ingred):

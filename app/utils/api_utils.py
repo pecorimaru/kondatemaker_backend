@@ -78,6 +78,12 @@ def decode_token(token: str) -> LoginInfo:
 
     try:
 
+        if not token:
+            raise HTTPException(
+                status_code = status.HTTP_403_FORBIDDEN, 
+                detail = msg.get_message(msg.ME0003_SESSION_TIME_OUT),
+            )
+
         payload = jwt.decode(token, secret_key, algorithms=[algorithm])
         login_info = LoginInfo(
             user_id = int(payload.get("user_id")),

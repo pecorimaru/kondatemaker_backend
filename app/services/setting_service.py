@@ -168,7 +168,7 @@ class SettingService(BaseService):
             self.handle_system_error(e, method_nm, self.get_params(method_nm))
 
 
-    def fetch_group_member_list(self) -> list[GroupDisp]:
+    def fetch_group_member_list(self) -> list[GroupMemberDisp]:
     
         try:
             group_crud = GroupCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
@@ -248,7 +248,7 @@ class SettingService(BaseService):
             user = user_crud.get_user()
 
             # グループ参加リンクを生成
-            group_join_link = f"{os.getenv("CLIENT_URL")}/joinGroup?token={token}"
+            group_join_link = f"{os.getenv('CLIENT_URL')}/joinGroup?token={token}"
 
             html_content = f"""
                 <html>

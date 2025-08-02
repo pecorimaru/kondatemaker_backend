@@ -11,7 +11,7 @@ from passlib.context import CryptContext
 from app.core.base_service import BaseService
 from app.models import User, UserConfig, Group
 from app.crud import UserCrud, GroupCrud, IngredCrud
-from app.validators import user_validators
+from app.validators import user_validators 
 from app.utils import api_utils, mail_utils, message_utils as msg, constants as const
 from app.utils.api_utils import TokenData  
 
@@ -51,7 +51,7 @@ class LoginService(BaseService):
 
         try:
 
-            isActiveAccount = False
+            is_active_account = False
 
             # 既存登録チェック
             user_crud = UserCrud(None, None, None, self.db)
@@ -61,7 +61,7 @@ class LoginService(BaseService):
                 # アカウントが有効な場合
                 if not user.dele_flg == "T":
 
-                    isActiveAccount = True
+                    is_active_account = True
                     
                     # 新規登録済でアクティベート待ちの場合
                     user_config = user_crud.get_user_config(user.user_id, const.USER_CONFIG_TYPE_4_ACTIVATE_FLG)
@@ -75,7 +75,7 @@ class LoginService(BaseService):
             else:
                 new_user = user_crud.create_user(email, "")
 
-            if not isActiveAccount:
+            if not is_active_account:
 
                 # # グループ登録
                 group = self.create_default_group_and_set_current(new_user)
@@ -194,7 +194,7 @@ class LoginService(BaseService):
             self.db.commit()
 
             # アクティベーションリンクを生成
-            activation_link = f"{os.getenv("CLIENT_URL")}/activate?token={token}"
+            activation_link = f"{os.getenv('CLIENT_URL')}/activate?token={token}"
 
             html_content = f"""
                 <html>

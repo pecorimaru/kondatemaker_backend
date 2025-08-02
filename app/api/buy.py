@@ -4,10 +4,11 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from app.core.session import get_db, oauth2_scheme
+from app.crud import AppConstCrud
 from app.utils.api_utils import CamelModel, decode_token
 from app.models.display import BuyIngredDisp
 from app.services import BuyService
-from app.utils import message_utils as msg
+from app.utils import message_utils as msg, constants as const
 
 
 router = APIRouter()
@@ -24,9 +25,10 @@ class SwitchCompletionStateResponse(CamelModel):
 
 class SubmitAddBuyIngredRequest(CamelModel):
     ingred_nm: str
-    qty: float
+    qty: Optional[float]=None
     unit_cd: str
     sales_area_type: str
+    is_buy_every_week: bool
 
 class SubmitAddBuyIngredResponse(CamelModel):
     status_code: int
@@ -36,9 +38,10 @@ class SubmitAddBuyIngredResponse(CamelModel):
 class SubmitEditBuyIngredRequest(CamelModel):
     buy_ingred_id: int
     ingred_nm: str
-    qty: float
+    qty: Optional[float]=None
     unit_cd: str
     sales_area_type: str
+    is_buy_every_week: bool
 
 class SubmitEditBuyIngredResponse(CamelModel):
     status_code: int
@@ -77,10 +80,21 @@ def submit_add_buy_ingred(request: SubmitAddBuyIngredRequest, db: Session = Depe
     login_info = decode_token(token)
 
     buy_service = BuyService(login_info.user_id, login_info.group_id, login_info.owner_user_id, db)
-    new_buy_ingred = buy_service.add_buy_ingred(request.ingred_nm, request.qty, request.unit_cd, request.sales_area_type)
+    new_buy_ingred = buy_service.add_buy_ingred(
+        request.ingred_nm, 
+        request.qty, 
+        request.unit_cd, 
+        request.sales_area_type, 
+        request.is_buy_every_week
+    )
+
+    app_const_crud = AppConstCrud(db)
+    app_const = app_const_crud.get_app_const_from_val(const.APP_CONST_C0002_UNIT_TYPE, new_buy_ingred.unit_cd)
+    qty_disp = str(f"{new_buy_ingred.qty:.15g}") + app_const.val_content if new_buy_ingred.qty else ""
+
     return SubmitAddBuyIngredResponse(
         status_code = status.HTTP_200_OK,
-        message = msg.get_message(msg.MI0002_CREATE_SUCCESSFUL),
+        message = msg.get_message(msg.MI0012_REGISTER_BUY_INGRED, new_buy_ingred.ingred_nm, qty_disp),
         new_buy_ingred = new_buy_ingred
     )
 
@@ -90,7 +104,15 @@ def submit_edit_buy_ingred(request: SubmitEditBuyIngredRequest, db: Session = De
     login_info = decode_token(token)
 
     buy_service = BuyService(login_info.user_id, login_info.group_id, login_info.owner_user_id, db)
-    new_buy_ingred = buy_service.edit_buy_ingred(request.buy_ingred_id, request.ingred_nm, request.qty, request.unit_cd, request.sales_area_type)
+    new_buy_ingred = buy_service.edit_buy_ingred(
+        request.buy_ingred_id, 
+        request.ingred_nm, 
+        request.qty, 
+        request.unit_cd, 
+        request.sales_area_type, 
+        request.is_buy_every_week
+    )
+
     return SubmitEditBuyIngredResponse(
         status_code = status.HTTP_200_OK,
         message = msg.get_message(msg.MI0003_EDIT_SUCCESSFUL),

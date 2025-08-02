@@ -3,7 +3,9 @@ from sqlalchemy.orm import Session
 from app.core.base_service import BaseService
 from app.models.display import MenuPlanDisp, MenuPlanDetDisp
 from app.crud import MenuPlanCrud, RecipeCrud
-from app.validators import recipe_validators, menu_plan_validators
+from app.validators import menu_plan_validators
+from app.validators.form.menu_plan_validators import menu_plan_det_form_validate
+from app.validators.item import existence_validators, uniqueness_validators, reference_validators
 
 
 class MenuPlanService(BaseService):
@@ -106,9 +108,8 @@ class MenuPlanService(BaseService):
             menu_plan_crud = MenuPlanCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             recipe_crud = RecipeCrud(self.user_id, self.group_id, self.owner_user_id, self.db)
             
-            # レシピの存在チェック
             recipe = recipe_crud.get_recipe_from_nm(recipe_nm)
-            recipe_validators.check_recipe_exists(recipe, recipe_nm)
+            menu_plan_det_form_validate(weekday_cd, recipe, recipe_nm)
             
             new_menu_plan_det = menu_plan_crud.create_menu_plan_det(menu_plan_id, weekday_cd, recipe_nm)
             self.db.commit()
@@ -128,7 +129,7 @@ class MenuPlanService(BaseService):
 
             # レシピの存在チェック
             recipe = recipe_crud.get_recipe_from_nm(recipe_nm)
-            recipe_validators.check_recipe_exists(recipe, recipe_nm)
+            existence_validators.check_recipe_exists(recipe, recipe_nm)
 
             new_menu_plan_det = menu_plan_crud.update_menu_plan_det(menu_plan_det_id, weekday_cd, recipe_nm)
             self.db.commit()
@@ -153,3 +154,4 @@ class MenuPlanService(BaseService):
         except Exception as e:
             method_nm = self.get_method_nm()
             self.handle_system_error(e, method_nm, self.get_params(method_nm))
+    

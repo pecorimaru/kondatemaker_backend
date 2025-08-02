@@ -28,7 +28,12 @@ class RecipeCrud(BaseService):
     def get_recipe_list(self) -> list[Recipe]:
 
         try:
-            recipe_list = self.db.query(Recipe).filter(Recipe.owner_user_id == self.owner_user_id).all()
+            recipe_list = self.db \
+                .query(Recipe) \
+                .filter(Recipe.owner_user_id == self.owner_user_id) \
+                .order_by(Recipe.recipe_nm_k, Recipe.recipe_nm) \
+                .all()
+
             return recipe_list           
 
         except SQLAlchemyError as e:
@@ -58,7 +63,7 @@ class RecipeCrud(BaseService):
                         Recipe.recipe_nm_k.like(f"%{input_value}%")
                         ), 
                         Recipe.owner_user_id == self.owner_user_id) \
-                    .order_by(Recipe.recipe_nm_k).all()
+                    .order_by(Recipe.recipe_nm_k, Recipe.recipe_nm).all()
 
             # SQLAlchemyでは１項目のみで取得してもタプル型リスト[(Recipe.recipe_nm, ),...]になるため
             # str型リスト[(Recipe.recipe_nm),...]に変換する
@@ -171,7 +176,7 @@ class RecipeCrud(BaseService):
     def get_recipe_ingred_list(self, recipe_id: int) -> list[RecipeIngred]:
 
         try:
-            recipe_ingred_list = self.db.query(RecipeIngred).filter(RecipeIngred.recipe_id == recipe_id).all();
+            recipe_ingred_list = self.db.query(RecipeIngred).filter(RecipeIngred.recipe_id == recipe_id).all()
             return recipe_ingred_list
 
         except SQLAlchemyError as e:
@@ -182,8 +187,7 @@ class RecipeCrud(BaseService):
     def get_recipe_ingred_list_from_ingred(self, ingred_id: int) -> list[RecipeIngred]:
 
         try:
-            recipe_ingred_list = self.db.query(RecipeIngred).filter(RecipeIngred.ingred_id == ingred_id).one_or_none();
-
+            recipe_ingred_list = self.db.query(RecipeIngred).filter(RecipeIngred.ingred_id == ingred_id).one_or_none()
             return recipe_ingred_list
 
         except SQLAlchemyError as e:

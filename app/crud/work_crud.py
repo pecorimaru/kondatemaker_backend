@@ -35,7 +35,7 @@ class WorkCrud(BaseService):
             toweek_menu_plan_det_list = self.db \
                 .query(ToweekMenuPlanDet) \
                 .filter(ToweekMenuPlanDet.owner_user_id == self.owner_user_id) \
-                .order_by(ToweekMenuPlanDet.weekday_cd) \
+                .order_by(ToweekMenuPlanDet.weekday_cd, ToweekMenuPlanDet.toweek_menu_plan_det_id) \
                 .all() 
 
             return toweek_menu_plan_det_list
@@ -149,7 +149,8 @@ class WorkCrud(BaseService):
                     BuyIngred.ingred_nm == ingred_nm, 
                     BuyIngred.owner_user_id == self.owner_user_id,
                     BuyIngred.manual_add_flg == "F",   # 自動追加された購入食材であれば一意に取得可能
-                ).one_or_none()
+                    BuyIngred.bought_flg == "F",       # 未購入の購入食材のみを取得対象とする
+                ).first()
 
             return buy_ingred           
 
@@ -170,7 +171,7 @@ class WorkCrud(BaseService):
             self.handle_system_error(e, method_nm, self.get_params(method_nm))
 
 
-    def create_buy_ingred(self, ingred_nm: str, qty: float, unit_cd: str, const_sales_area_type: AppConst):
+    def create_buy_ingred(self, ingred_nm: str, qty: float, unit_cd: str, const_sales_area_type: AppConst, is_buy_every_week: bool):
 
         new_buy_ingred = BuyIngred(
             owner_user_id = self.owner_user_id,
@@ -181,7 +182,7 @@ class WorkCrud(BaseService):
             sales_area_seq = const_sales_area_type.sort_seq,
             manual_add_flg = "T",
             bought_flg = "F",
-            fix_buy_flg = "F",
+            fix_buy_flg = "T" if is_buy_every_week else "F",
         )
 
         try:
@@ -304,7 +305,14 @@ class WorkCrud(BaseService):
             self.handle_system_error(e, method_nm, self.get_params(method_nm))
 
 
-    def update_buy_ingred(self, buy_ingred_id: int, ingred_nm: str, qty: float, unit_cd: str, const_sales_area_type: AppConst):
+    def update_buy_ingred(
+        self, buy_ingred_id: int, 
+        ingred_nm: str, 
+        qty: float, 
+        unit_cd: str, 
+        const_sales_area_type: AppConst, 
+        is_buy_every_week: bool
+    ):
 
         try:
             edit_buy_ingred = self.db.query(BuyIngred).filter(BuyIngred.buy_ingred_id == buy_ingred_id).one()
@@ -313,6 +321,8 @@ class WorkCrud(BaseService):
             edit_buy_ingred.unit_cd = unit_cd
             edit_buy_ingred.sales_area_type = const_sales_area_type.val
             edit_buy_ingred.sales_area_seq = const_sales_area_type.sort_seq
+            edit_buy_ingred.manual_add_flg = "T"
+            edit_buy_ingred.fix_buy_flg = "T" if is_buy_every_week else "F"
 
             return edit_buy_ingred
 
@@ -352,14 +362,38 @@ class WorkCrud(BaseService):
             self.handle_system_error(e, method_nm, self.get_params(method_nm))
 
 
-    def delete_buy_ingred_all(self):
+    def delete_buy_ingred_other_than_fix_buy(self):
 
         try:
-            self.db.query(BuyIngred).filter(BuyIngred.owner_user_id == self.owner_user_id).delete()
+            self.db.query(BuyIngred) \
+                .filter(
+                    BuyIngred.owner_user_id == self.owner_user_id,
+                    BuyIngred.fix_buy_flg == "F",
+                ).delete()
 
             return
 
         except SQLAlchemyError as e:
+            method_nm = self.get_method_nm()
+            self.handle_system_error(e, method_nm, self.get_params(method_nm))
+
+
+    def reset_buy_ingred_fix_buy_flg(self):
+
+        try:
+            edit_buy_ingred_list = self.db.query(BuyIngred) \
+                .filter(
+                    BuyIngred.owner_user_id == self.owner_user_id,
+                    BuyIngred.fix_buy_flg == "T",
+                ).all()
+            
+            for edit_buy_ingred in edit_buy_ingred_list:
+                edit_buy_ingred.bought_flg = "F"
+
+            return edit_buy_ingred_list
+
+        except SQLAlchemyError as e:
+            self.db.rollback()
             method_nm = self.get_method_nm()
             self.handle_system_error(e, method_nm, self.get_params(method_nm))
 
